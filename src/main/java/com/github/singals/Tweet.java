@@ -7,6 +7,7 @@ import twitter4j.Status;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Tweet {
     private String user;
     private String tweetText;
