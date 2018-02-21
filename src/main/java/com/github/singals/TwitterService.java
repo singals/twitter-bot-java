@@ -6,10 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
+import twitter4j.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,5 +32,17 @@ public class TwitterService {
         }
     }
 
+    public List<Tweet> findTweetsByText(String textToSearch){
+        try {
+            final QueryResult queryResult = twitter.search(new Query(textToSearch));
+            return queryResult.getTweets().stream()
+                    .map(Tweet::mapFromStatus)
+                    .collect(Collectors.toList());
+
+        } catch (TwitterException e) {
+            logger.error("Unable to search tweets by text", e);
+            return emptyList();
+        }
+    }
 
 }

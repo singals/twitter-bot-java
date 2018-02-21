@@ -2,17 +2,24 @@ package com.github.singals;
 
 import org.junit.Before;
 import org.junit.Test;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
+import org.mockito.ArgumentCaptor;
+import twitter4j.*;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
+import static org.hamcrest.core.Is.is;
 
 public class TwitterServiceTest {
 
     private Twitter twitter = mock(Twitter.class);
     private Status status = mock(Status.class);
     private TwitterService twitterService;
+
+    private String username = "test";
 
     @Before
     public void setUp() throws Exception {
@@ -41,5 +48,43 @@ public class TwitterServiceTest {
 
         verify(twitter).updateStatus(tweetText);
         verify(status, never()).getText();
+    }
+
+    @Test
+    public void shouldFindTweetByText() throws Exception {
+        final String textToSearch = "some random text";
+        Query query = new Query(textToSearch);
+        String tweetText =  "tweet with " + textToSearch;
+        Status status = mock(Status.class);
+        QueryResult queryResult = mock(QueryResult.class);
+        User user = mock(User.class);
+
+        when(twitter.search(eq(query))).thenReturn(queryResult);
+        when(queryResult.getTweets()).thenReturn(asList(status));
+        when(status.getText()).thenReturn(tweetText);
+        when(status.getUser()).thenReturn(user);
+        when(user.getScreenName()).thenReturn(username);
+
+
+        final List<Tweet> tweetsByText = twitterService.findTweetsByText(textToSearch);
+
+
+        assertThat(tweetsByText.size(), is(1));
+        final Tweet actualTweet = tweetsByText.get(0);
+        assertThat(actualTweet.getTweetText(), is(tweetText));
+        assertThat(actualTweet.getUser(), is(username));
+    }
+
+    @Test
+    public void shouldHandleWhenUnableToFindTweetByText() throws Exception {
+        final String textToSearch = "some random text";
+        ArgumentCaptor<Query> argumentCaptor = ArgumentCaptor.forClass(Query.class);
+        doThrow(new TwitterException("test expt"))
+                .when(twitter).search(argumentCaptor.capture());
+
+        final List<Tweet> tweetsByText = twitterService.findTweetsByText(textToSearch);
+
+        assertTrue(tweetsByText.isEmpty());
+        assertThat(argumentCaptor.getValue().getQuery(), is(textToSearch));
     }
 }
