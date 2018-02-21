@@ -9,7 +9,9 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-    compile group: 'org.twitter4j', name: 'twitter4j-core', version: '4.0.6'
+    compile (group: 'org.twitter4j', name: 'twitter4j-core', version: '4.0.6'){
+        exclude group: 'log4j', module: 'log4j'
+    }
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.16.20'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
