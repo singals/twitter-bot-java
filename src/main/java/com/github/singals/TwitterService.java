@@ -45,4 +45,14 @@ public class TwitterService {
         }
     }
 
+    public List<Tweet> getTweetsFromTimeLine(){
+        try {
+            final List<Status> homeTimeline = twitter.getHomeTimeline();
+            return homeTimeline.stream().map(Tweet::mapFromStatus).collect(Collectors.toList());
+        } catch (TwitterException e) {
+            logger.error("Unable to get home time line", e);
+            return emptyList();
+        }
+    }
+
 }

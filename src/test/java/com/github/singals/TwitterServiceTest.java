@@ -1,6 +1,7 @@
 package com.github.singals;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import twitter4j.*;
@@ -15,11 +16,13 @@ import static org.hamcrest.core.Is.is;
 
 public class TwitterServiceTest {
 
-    private Twitter twitter = mock(Twitter.class);
-    private Status status = mock(Status.class);
     private TwitterService twitterService;
 
+    private Twitter twitter = mock(Twitter.class);
     private String username = "test";
+    private Status status = mock(Status.class);
+    private QueryResult queryResult = mock(QueryResult.class);
+    private User user = mock(User.class);
 
     @Before
     public void setUp() throws Exception {
@@ -55,9 +58,6 @@ public class TwitterServiceTest {
         final String textToSearch = "some random text";
         Query query = new Query(textToSearch);
         String tweetText =  "tweet with " + textToSearch;
-        Status status = mock(Status.class);
-        QueryResult queryResult = mock(QueryResult.class);
-        User user = mock(User.class);
 
         when(twitter.search(eq(query))).thenReturn(queryResult);
         when(queryResult.getTweets()).thenReturn(asList(status));
@@ -86,5 +86,22 @@ public class TwitterServiceTest {
 
         assertTrue(tweetsByText.isEmpty());
         assertThat(argumentCaptor.getValue().getQuery(), is(textToSearch));
+    }
+
+    @Test
+    @Ignore
+    public void shouldGetTweetsFromTimeline() throws Exception {
+        //TODO impl this
+    }
+
+    @Test
+    public void shouldHandleWhenUnableToGetTweetFromTimeline() throws Exception {
+        doThrow(new TwitterException("test expt"))
+                .when(twitter).getHomeTimeline();
+
+        final List<Tweet> tweetsFromTimeLine = twitterService.getTweetsFromTimeLine();
+
+        assertTrue(tweetsFromTimeLine.isEmpty());
+        verify(twitter).getHomeTimeline();
     }
 }
