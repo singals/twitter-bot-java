@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import twitter4j.*;
 
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -58,11 +59,13 @@ public class TwitterServiceTest {
         final String textToSearch = "some random text";
         Query query = new Query(textToSearch);
         String tweetText =  "tweet with " + textToSearch;
+        Long tweetId = 1L;
 
         when(twitter.search(eq(query))).thenReturn(queryResult);
         when(queryResult.getTweets()).thenReturn(asList(status));
         when(status.getText()).thenReturn(tweetText);
         when(status.getUser()).thenReturn(user);
+        when(status.getId()).thenReturn(tweetId);
         when(user.getScreenName()).thenReturn(username);
 
 
@@ -103,5 +106,63 @@ public class TwitterServiceTest {
 
         assertTrue(tweetsFromTimeLine.isEmpty());
         verify(twitter).getHomeTimeline();
+    }
+
+    @Test
+    public void shouldReplyToTweet() throws Exception {
+        String textToSearch = "text to search";
+        String tweetText =  "original tweet " + textToSearch;
+        String replyText = "text to tweet";
+        final long tweetId = 1L;
+        Query query = new Query(textToSearch);
+
+        when(twitter.search(eq(query))).thenReturn(queryResult);
+        when(queryResult.getTweets()).thenReturn(asList(status));
+        when(status.getText()).thenReturn(tweetText);
+        when(status.getUser()).thenReturn(user);
+        when(status.getId()).thenReturn(tweetId);
+        when(user.getScreenName()).thenReturn(username);
+
+        twitterService.replyToTweet(textToSearch, tweetText);
+
+        ArgumentCaptor<StatusUpdate> argumentCaptor = ArgumentCaptor.forClass(StatusUpdate.class);
+        verify(twitter).updateStatus(argumentCaptor.capture());
+        final StatusUpdate actualStatusUpdate = argumentCaptor.getValue();
+        assertThat(actualStatusUpdate.getInReplyToStatusId(), is(tweetId));
+        assertThat(actualStatusUpdate.getStatus(), is("@test original tweet text to search"));
+    }
+
+    @Test
+    public void shouldHandleWhenNoTweetExists() throws Exception {
+        String textToSearch = "text to search";
+        String tweetText =  "original tweet " + textToSearch;
+        String replyText = "text to tweet";
+        final long tweetId = 1L;
+        Query query = new Query(textToSearch);
+
+        when(twitter.search(eq(query))).thenReturn(queryResult);
+        when(queryResult.getTweets()).thenReturn(Collections.emptyList());
+
+        verify(twitter, never()).updateStatus(any(StatusUpdate.class));
+    }
+
+    @Test
+    public void shouldHandleWhenUnableToReply() throws Exception {
+        String textToSearch = "text to search";
+        String tweetText =  "original tweet " + textToSearch;
+        String replyText = "text to tweet";
+        final long tweetId = 1L;
+        Query query = new Query(textToSearch);
+
+        when(twitter.search(eq(query))).thenReturn(queryResult);
+        when(queryResult.getTweets()).thenReturn(asList(status));
+        when(status.getText()).thenReturn(tweetText);
+        when(status.getUser()).thenReturn(user);
+        when(status.getId()).thenReturn(tweetId);
+        when(user.getScreenName()).thenReturn(username);
+        doThrow(new TwitterException("test expt"))
+                .when(twitter).updateStatus(any(StatusUpdate.class));
+
+        twitterService.replyToTweet(textToSearch, tweetText);
     }
 }

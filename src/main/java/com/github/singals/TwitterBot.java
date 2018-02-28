@@ -26,6 +26,9 @@ public class TwitterBot {
 //        final List<Tweet> myTweets = twitterService.getTweetsFromTimeLine();
 //        myTweets.forEach(t -> logger.info(t.toString()));
 
+//        reply to tweet
+//        twitterService.replyToTweet("#GiveGurgaonItsDue remove the #KherkiDaulaToll from midst of the city and save time and fuel wasted in abundance on toll", "true that! :)");
+//        logger.info("replied to tweet");
 
         logger.info("Exiting app");
     }

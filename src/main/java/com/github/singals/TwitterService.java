@@ -55,4 +55,20 @@ public class TwitterService {
         }
     }
 
+    public void replyToTweet(String textToSearch, String tweetText){
+        try {
+            final List<Tweet> tweets = findTweetsByText(textToSearch);
+            if (tweets.isEmpty()) {
+                logger.warn("No tweet found with text {}", textToSearch);
+            } else {
+                final Tweet tweet = tweets.get(0);
+                StatusUpdate statusUpdate = new StatusUpdate("@" + tweet.getUser() + " " + tweetText);
+                statusUpdate.inReplyToStatusId(tweet.getId());
+                twitter.updateStatus(statusUpdate);
+            }
+        } catch (TwitterException e) {
+            logger.error("Unable to reply to tweets", e);
+        }
+    }
+
 }
